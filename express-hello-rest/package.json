@@ -1,0 +1,15 @@
+{
+  "name": "express-hello-rest",
+  "version": "1.0.0",
+  "description": "Node Express demo REST API",
+  "main": "index.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "bittrance@gmail.com",
+  "license": "ISC",
+  "dependencies": {
+    "@godaddy/terminus": "^4.12.1",
+    "express": "^4.21.2"
+  }
+}
