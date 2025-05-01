@@ -1,0 +1,13 @@
+[package]
+name = "hello-grpc"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+prost = { version = "0.13.5", features = ["prost-derive"] }
+tokio = { version = "1.44.0", features = ["rt", "rt-multi-thread", "signal", "time"] }
+tonic = { version = "0.12.3", features = ["prost", "tls"] }
+tonic-health = "0.12.3"
+
+[build-dependencies]
+tonic-build = "0.12.3"
