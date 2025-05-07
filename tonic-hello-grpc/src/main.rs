@@ -24,9 +24,15 @@ impl GreetMe for MyGreeter {
         &self,
         request: Request<GreetRequest>,
     ) -> Result<Response<GreetResponse>, Status> {
-        sleep(self.request_delay).await;
+        let request = request.into_inner();
+        let delay = if request.delay_ms > 0 {
+            Duration::from_millis(request.delay_ms as u64)
+        } else {
+            self.request_delay
+        };
+        sleep(delay).await;
         let reply = GreetResponse {
-            greeting: format!("Hello {}!", request.into_inner().name),
+            greeting: format!("Hello {}!", request.name),
         };
         Ok(Response::new(reply))
     }
