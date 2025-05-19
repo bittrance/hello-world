@@ -1,3 +1,4 @@
+use http::Response as HttpResponse;
 use std::{env, path::PathBuf, time::Duration};
 use tokio::{signal, time::sleep};
 use tonic::{
@@ -5,9 +6,11 @@ use tonic::{
     transport::{Identity, Server, ServerTlsConfig},
 };
 use tonic_health::server::health_reporter;
+use tower_http::trace::OnResponse;
 
 use greetings::greet_me_server::{GreetMe, GreetMeServer};
 use greetings::{GreetRequest, GreetResponse};
+use tracing::{Level, Span};
 
 pub mod greetings {
     tonic::include_proto!("greetings");
@@ -60,6 +63,25 @@ async fn shutdown_signal() {
     }
 }
 
+#[derive(Clone, Debug)]
+pub struct ResponseTracer {}
+
+impl<B> OnResponse<B> for ResponseTracer {
+    fn on_response(self, response: &HttpResponse<B>, latency: Duration, _: &Span) {
+        let version = format!("{:?}", response.version());
+        let status = response.status().as_u16();
+        let headers = tracing::field::debug(response.headers());
+        let latency = format!("{:?}", latency);
+        tracing::event!(
+            Level::INFO,
+            version = version,
+            status = status,
+            headers,
+            latency,
+        );
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let request_delay = Duration::try_from_secs_f32(
@@ -69,6 +91,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .unwrap(),
     )
     .unwrap();
+    let debug: bool = {
+        env::var("HELLO_GRPC_DEBUG")
+            .map(|v| v == "true")
+            .unwrap_or(false)
+    };
     let addr = "0.0.0.0:8080".parse().unwrap();
     let mut identity = None;
     if let Some(data_dir) = env::var("HELLO_GRPC_CERT_DIR").ok().map(PathBuf::from) {
@@ -89,11 +116,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(identity) = identity {
         builder = builder.tls_config(ServerTlsConfig::new().identity(identity))?;
     }
-    builder
-        .add_service(health_service)
-        .add_service(greeter_service)
-        .serve_with_shutdown(addr, shutdown_signal())
-        .await?;
+    if debug {
+        tracing_subscriber::fmt::Subscriber::builder().init();
+        builder
+            .layer(tower_http::trace::TraceLayer::new_for_grpc().on_response(ResponseTracer {}))
+            .add_service(health_service)
+            .add_service(greeter_service)
+            .serve_with_shutdown(addr, shutdown_signal())
+            .await?;
+    } else {
+        builder
+            .add_service(health_service)
+            .add_service(greeter_service)
+            .serve_with_shutdown(addr, shutdown_signal())
+            .await?;
+    }
 
     Ok(())
 }
