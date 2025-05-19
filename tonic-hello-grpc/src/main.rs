@@ -30,7 +30,9 @@ impl GreetMe for MyGreeter {
         } else {
             self.request_delay
         };
-        sleep(delay).await;
+        if !delay.is_zero() {
+            sleep(delay).await;
+        }
         let reply = GreetResponse {
             greeting: format!("Hello {}!", request.name),
         };
