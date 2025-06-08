@@ -29,6 +29,10 @@ func main() {
 		c.String(http.StatusOK, "Hello world!")
 	})
 
+	r.GET("/health", func(c *gin.Context) {
+		c.String(http.StatusOK, "OK")
+	})
+
 	server := &http.Server{
 		Addr:    ":8080",
 		Handler: r,
