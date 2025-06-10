@@ -9,6 +9,12 @@ jobs:
   push_to_registry:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        webserver:
+          - jetty
+          - undertow
+          - tomcat
     permissions:
       contents: read
     steps:
@@ -29,6 +35,8 @@ jobs:
         uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
         with:
           context: ./spring-hello-rest
+          build-args: |
+            WEBSERVER=${{ matrix.webserver }}
           push: true
-          tags: bittrance/hello-world:spring-hello-rest
+          tags: bittrance/hello-world:spring-${{ matrix.webserver }}-hello-rest
           labels: ${{ steps.meta.outputs.labels }}

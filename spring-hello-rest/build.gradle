@@ -19,18 +19,21 @@ repositories {
 
 dependencies {
     implementation('org.springframework.boot:spring-boot-starter-web')
-    // implementation('org.springframework.boot:spring-boot-starter-jetty')
-    // modules {
-    //     module("org.springframework.boot:spring-boot-starter-tomcat") {
-    //         replacedBy("org.springframework.boot:spring-boot-starter-jetty", "Use Jetty")
-    //     }
-    // }
-    // implementation('org.springframework.boot:spring-boot-starter-undertow')
-    // modules {
-    //     module("org.springframework.boot:spring-boot-starter-tomcat") {
-    //         replacedBy("org.springframework.boot:spring-boot-starter-undertow", "Use Undertow")
-    //     }
-    // }
+    if (System.properties['webserver'] == 'jetty') {
+        implementation('org.springframework.boot:spring-boot-starter-jetty')
+        modules {
+            module("org.springframework.boot:spring-boot-starter-tomcat") {
+                replacedBy("org.springframework.boot:spring-boot-starter-jetty", "Use Jetty")
+            }
+        }
+    } else if (System.properties['webserver'] == 'undertow') {
+        implementation('org.springframework.boot:spring-boot-starter-undertow')
+        modules {
+            module("org.springframework.boot:spring-boot-starter-tomcat") {
+                replacedBy("org.springframework.boot:spring-boot-starter-undertow", "Use Undertow")
+            }
+        }
+    }
     implementation('org.springframework.boot:spring-boot-starter-validation')
     developmentOnly('org.springframework.boot:spring-boot-devtools')
     testImplementation('org.springframework.boot:spring-boot-starter-test')

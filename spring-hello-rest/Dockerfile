@@ -1,10 +1,12 @@
 FROM eclipse-temurin:21-jdk AS builder
 
+ARG WEBSERVER=tomcat
+
 WORKDIR /app
 
 COPY . /app
 RUN ./gradlew
-RUN ./gradlew build
+RUN ./gradlew -Dwebserver=$WEBSERVER build
 
 FROM eclipse-temurin:21-jre
 
