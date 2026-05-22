@@ -24,6 +24,10 @@ function makeServer(): McpServer {
 const app = express();
 app.use(express.json());
 
+app.get('/healthz', (_req: Request, res: Response) => {
+  res.send('ok');
+});
+
 app.post('/mcp', async (req: Request, res: Response) => {
   const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
   const server = makeServer();
