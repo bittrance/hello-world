@@ -55,7 +55,7 @@ app.get('/.well-known/oauth-protected-resource', (_req: Request, res: Response) 
   res.json({
     resource: resourceUrl,
     authorization_servers: [issuer],
-    scopes_supported: ['greet'],
+    scopes_supported: [`${resourceUrl}/greet`],
   });
 });
 
